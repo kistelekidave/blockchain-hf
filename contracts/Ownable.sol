@@ -1,4 +1,5 @@
-pragma solidity >=0.5.0 <0.6.0;
+// SPDX-License-Identifier: Unlicense
+pragma solidity >=0.5.0;
 
 /**
 * @title Ownable
@@ -17,7 +18,7 @@ contract Ownable {
      * @dev The Ownable constructor sets the original `owner` of the contract to the sender
      * account.
      */
-    constructor() internal {
+    constructor() {
         _owner = msg.sender;
         emit OwnershipTransferred(address(0), _owner);
     }
@@ -33,7 +34,7 @@ contract Ownable {
      * @dev Throws if called by any account other than the owner.
      */
     modifier onlyOwner() {
-        require(isOwner());
+        require(isOwner(), "Caller is not the owner");
         _;
     }
 
