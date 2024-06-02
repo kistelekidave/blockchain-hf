@@ -152,6 +152,7 @@ contract RailroadCrossing is Ownable {
 
     // car tries to enter lane
     function tryToEnterLane(uint _laneId) external {
+        require(lanes[_laneId].capacity < lanes[_laneId].maxCapacity, "Lane is full!");
         require(carIsInLane[msg.sender] == false, "Car is already in a lane!");
         require(lanes[_laneId].state == State.FREE_TO_CROSS || lanes[_laneId].state == State.OCCUPIED, "Crossing is blocked!");
         carIsInLane[msg.sender] = true;
@@ -164,7 +165,6 @@ contract RailroadCrossing is Ownable {
         uint laneId = laneOfCar[msg.sender];
 
         require(carIsInLane[msg.sender], "Car is not in a lane!");
-        require(lanes[laneId].capacity < lanes[laneId].maxCapacity, "Lane is full!");
         require(lastInfrastructureUpdate + validityTime > block.timestamp, "Infrastructure not responding, crossing is locked!");
         require(lanes[laneId].state == State.FREE_TO_CROSS || lanes[laneId].state == State.OCCUPIED, "Crossing is locked!");
 

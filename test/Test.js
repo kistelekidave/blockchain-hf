@@ -349,5 +349,39 @@ describe("Test suite for contract Contract.sol", function () {
             expect(ledgerEntry3[0]).to.equal(addr1);
             expect(ledgerEntry3[1]).to.equal(0);
         });
+
+        it("train goes trough crossing and car enters only after", async function () {
+            const { contract, owner, addr1, addr2 , initialNumberOfLanes, initialMaxCapacityByLane, initialValidityTime } = await deployTokenFixture();
+
+            await contract.noTrainUpdate();
+
+            await contract.connect(addr1).tryToEnterLane(0);
+            await contract.connect(addr1).requestPermission();
+
+            await expect(contract.trainComing()).to.emit(contract, "TrainCanPass");
+
+            await expect(
+                contract.connect(addr1).carEnter()
+            ).to.be.revertedWith("Crossing is locked!");
+
+            await expect(contract.trainGone()).to.emit(contract, "TrainPassed");
+
+            await expect(contract.connect(addr1).carEnter()).to.emit(contract, "LaneOccupied").withArgs(0);
+            await expect(contract.carLeave(0, addr1)).to.emit(contract, "LaneFree").withArgs(0);
+        });
+
+        it("lane capacity gets full and car cannot enter", async function () {
+            const { contract, owner, addr1, addr2 , initialNumberOfLanes, initialMaxCapacityByLane, initialValidityTime } = await deployTokenFixture();
+            await contract.noTrainUpdate();
+            await contract.setMaxCapacityOfLane(0, 1);
+
+            expect(await contract.laneHasCapacity(0)).to.be.true;
+
+            await contract.connect(addr1).tryToEnterLane(0);
+
+            expect(await contract.laneHasCapacity(0)).to.be.false;
+
+            await expect(contract.connect(addr2).tryToEnterLane(0)).to.be.revertedWith("Lane is full!");
+        });
     });
 });
